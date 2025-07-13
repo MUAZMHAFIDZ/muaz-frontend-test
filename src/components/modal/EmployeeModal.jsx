@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import useGetDivisions from "../../hooks/useGetDivisions";
 
 export default function EmployeeModal({
   isOpen,
@@ -9,10 +10,12 @@ export default function EmployeeModal({
   const [form, setForm] = useState({
     name: "",
     phone: "",
-    image: "",
+    image: null,
     position: "",
     division: { id: "", name: "" },
   });
+
+  const { divisions } = useGetDivisions();
 
   useEffect(() => {
     if (initialData) {
@@ -21,11 +24,15 @@ export default function EmployeeModal({
   }, [initialData]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name.startsWith("division.")) {
+    const { name, value, files } = e.target;
+
+    if (name === "image") {
+      setForm((prev) => ({ ...prev, image: files[0] }));
+    } else if (name === "division.id") {
+      const selected = divisions.find((d) => d.id === value);
       setForm((prev) => ({
         ...prev,
-        division: { ...prev.division, [name.split(".")[1]]: value },
+        division: { id: selected?.id || "", name: selected?.name || "" },
       }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
@@ -38,10 +45,21 @@ export default function EmployeeModal({
     setForm({
       name: "",
       phone: "",
-      image: "",
+      image: null,
       position: "",
       division: { id: "", name: "" },
     });
+  };
+
+  const handleClose = () => {
+    setForm({
+      name: "",
+      phone: "",
+      image: null,
+      position: "",
+      division: { id: "", name: "" },
+    });
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -74,17 +92,23 @@ export default function EmployeeModal({
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded dark:bg-gray-800"
           />
-          <input
+          <select
             name="division.id"
-            placeholder="ID Divisi"
             value={form.division.id}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded dark:bg-gray-800"
-          />
+          >
+            <option value="">Pilih Divisi</option>
+            {divisions.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
           <input
-            name="division.name"
-            placeholder="Nama Divisi"
-            value={form.division.name}
+            type="file"
+            name="image"
+            accept="image/*"
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded dark:bg-gray-800"
           />
@@ -92,7 +116,7 @@ export default function EmployeeModal({
 
         <div className="flex justify-end gap-2 mt-4">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="px-4 py-2 rounded bg-gray-300 dark:bg-gray-700"
           >
             Batal

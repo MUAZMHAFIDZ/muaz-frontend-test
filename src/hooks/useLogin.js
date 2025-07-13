@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useAuthContext } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
+import useApiUrl from "../hooks/useApiUrl";
 
 const useLogin = () => {
   const [loading, setLoading] = useState(false);
   const { setAuthUser } = useAuthContext();
   const { showToast } = useToast();
+  const apiUrl = useApiUrl();
 
-  const login = (username, password) => {
+  const login = async (username, password) => {
     const isValid = validateInput(username, password, showToast);
     if (!isValid) {
       return {
@@ -18,46 +20,43 @@ const useLogin = () => {
 
     setLoading(true);
 
-    const STATIC_USER = {
-      username: "admin",
-      password: "123456",
-      admin: {
-        id: "uuid-admin-123",
-        name: "Admin Muaz",
-        username: "admin",
-        phone: "08123456789",
-        email: "admin@example.com",
-      },
-      token: "fake-token",
-    };
-
-    if (
-      username === STATIC_USER.username &&
-      password === STATIC_USER.password
-    ) {
-      const response = {
-        status: "success",
-        message: "Login berhasil",
-        data: {
-          token: STATIC_USER.token,
-          admin: STATIC_USER.admin,
+    try {
+      const res = await fetch(`${apiUrl}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || json.status !== "success") {
+        throw new Error(json.message || "Login gagal");
+      }
+
+      const userData = {
+        token: json.data.token,
+        admin: json.data.admin,
       };
 
-      localStorage.setItem("user", JSON.stringify(response.data));
-      setAuthUser(response.data);
-      showToast({ type: "green", message: response.message });
+      localStorage.setItem("user", JSON.stringify(userData));
+      setAuthUser(userData);
+      showToast({ type: "green", message: json.message });
 
-      setLoading(false);
-      return response;
-    } else {
-      const errorResponse = {
+      return {
+        status: "success",
+        message: json.message,
+        data: userData,
+      };
+    } catch (err) {
+      showToast({ type: "red", message: err.message });
+      return {
         status: "error",
-        message: "Username atau password salah",
+        message: err.message || "Terjadi kesalahan saat login",
       };
-      showToast({ type: "red", message: errorResponse.message });
+    } finally {
       setLoading(false);
-      return errorResponse;
     }
   };
 

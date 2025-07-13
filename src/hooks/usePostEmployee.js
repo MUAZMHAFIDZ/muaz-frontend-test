@@ -1,22 +1,49 @@
-const generateRandomId = () => {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let id = "";
-  for (let i = 0; i < 16; i++) {
-    id += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return id;
-};
+import { useToast } from "../contexts/ToastContext";
+import useApiUrl from "./useApiUrl";
+import { useAuthContext } from "../contexts/AuthContext";
 
-const usePostEmployee = (setEmployees) => {
-  return (newEmployee) => {
-    const employees = JSON.parse(localStorage.getItem("employees")) || [];
-    const employeeWithId = {
-      ...newEmployee,
-      id: generateRandomId(),
-    };
-    const updated = [...employees, employeeWithId];
-    localStorage.setItem("employees", JSON.stringify(updated));
-    setEmployees(updated);
+const usePostEmployee = (refetch) => {
+  const { showToast } = useToast();
+  const apiUrl = useApiUrl();
+  const { authUser } = useAuthContext();
+
+  return async (newEmployee) => {
+    const formData = new FormData();
+    formData.append("image", newEmployee.image);
+    formData.append("name", newEmployee.name);
+    formData.append("phone", newEmployee.phone);
+    formData.append("division", newEmployee.division.id);
+    formData.append("position", newEmployee.position);
+
+    for (let pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}/employees`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${authUser.token}`,
+          Accept: "application/json",
+        },
+        body: formData,
+      });
+
+      const json = await response.json();
+
+      if (!response.ok || json.status !== "success") {
+        throw new Error(json.message || "Gagal menambahkan karyawan");
+      }
+
+      refetch();
+
+      showToast({
+        type: "green",
+        message: json.message || "Berhasil menambahkan karyawan",
+      });
+    } catch (error) {
+      showToast({ type: "red", message: error.message });
+    }
   };
 };
 

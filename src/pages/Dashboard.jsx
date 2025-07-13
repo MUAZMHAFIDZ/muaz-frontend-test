@@ -14,16 +14,16 @@ export default function Dashboard() {
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
 
-  const { employees, setEmployees } = useGetEmployees();
-  const postEmployee = usePostEmployee(setEmployees);
-  const updateEmployee = useUpdateEmployee(setEmployees);
-  const deleteEmployee = useDeleteEmployee(setEmployees);
+  const { employees, loading, refetch } = useGetEmployees(keyword);
+  const postEmployee = usePostEmployee(refetch);
+  const updateEmployee = useUpdateEmployee(refetch);
+  const deleteEmployee = useDeleteEmployee(refetch);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
 
   const filtered = employees.filter((e) =>
-    e.name.toLowerCase().includes(keyword.toLowerCase())
+    e?.name?.toLowerCase().includes(keyword.toLowerCase())
   );
 
   const totalPages = Math.ceil(filtered.length / perPage);
@@ -60,7 +60,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       <Navbar />
-
       <div className="max-w-5xl mx-auto p-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Data Karyawan</h1>
@@ -82,6 +81,11 @@ export default function Dashboard() {
           placeholder="Cari nama karyawan..."
           className="w-full px-4 py-2 rounded border mb-4 dark:bg-gray-800 dark:text-white"
         />
+        {loading && (
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            Memuat data...
+          </p>
+        )}
 
         {currentData.length === 0 ? (
           <p className="text-center text-sm text-gray-500 dark:text-gray-400">
@@ -95,6 +99,13 @@ export default function Dashboard() {
                 className="bg-white dark:bg-gray-800 p-4 rounded shadow relative"
               >
                 <div className="flex gap-4 items-center">
+                  {e.image && (
+                    <img
+                      src={`${e.image}`}
+                      alt={e.name}
+                      className="w-16 h-16 rounded object-cover border"
+                    />
+                  )}
                   <div className="flex-1">
                     <h2 className="font-bold text-lg">{e.name}</h2>
                     <p>{e.phone}</p>
