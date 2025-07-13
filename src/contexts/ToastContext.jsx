@@ -38,20 +38,3 @@ export const ToastProvider = ({ children }) => {
     </ToastContext.Provider>
   );
 };
-
-// import { useToast } from "../contexts/ToastContext";
-
-// export default function SomeComponent() {
-//   const { showToast } = useToast();
-
-//   return (
-//     <button
-//       onClick={() =>
-//         showToast({ type: "green", message: "Berhasil disimpan!" })
-//       }
-//       className="bg-green-600 text-white px-4 py-2 rounded"
-//     >
-//       Simpan
-//     </button>
-//   );
-// }
