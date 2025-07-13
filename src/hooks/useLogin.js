@@ -19,8 +19,8 @@ const useLogin = () => {
     setLoading(true);
 
     const STATIC_USER = {
-      username: "admin",
-      password: "123456",
+      username: "Admin",
+      password: "pastibisa",
       admin: {
         id: "uuid-admin-123",
         name: "Admin Muaz",
