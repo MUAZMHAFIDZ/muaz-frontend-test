@@ -1,5 +1,5 @@
 const useApiUrl = () => {
-  return "https://backend.muazmhafidz.my.id/api";
+  return "https://localhost:8000/api";
 };
 
 export default useApiUrl;
